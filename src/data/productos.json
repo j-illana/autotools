@@ -1,0 +1,22 @@
+[
+  { "id": "ENG-202", "nombre": "Bujía de Iridio NGK", "categoria": "Electricidad", "stock": 145, "precio": 12.50 },
+  { "id": "ENG-315", "nombre": "Correa de Distribución Gates", "categoria": "Motor", "stock": 33, "precio": 28.90 },
+  { "id": "ENG-401", "nombre": "Bobina de Encendido Bosch", "categoria": "Electricidad", "stock": 27, "precio": 54.00 },
+  { "id": "ENG-512", "nombre": "Sensor de Oxígeno Denso", "categoria": "Electricidad", "stock": 18, "precio": 38.75 },
+  { "id": "ENG-608", "nombre": "Tapa de Válvulas Victor Reinz", "categoria": "Motor", "stock": 9, "precio": 22.40 },
+  { "id": "TRN-045", "nombre": "Kit de Embrague LUK", "categoria": "Transmisión", "stock": 4, "precio": 185.00 },
+  { "id": "TRN-133", "nombre": "Aceite de Transmisión Castrol", "categoria": "Transmisión", "stock": 62, "precio": 15.90 },
+  { "id": "TRN-280", "nombre": "Sello de Transmisión National", "categoria": "Transmisión", "stock": 11, "precio": 8.20 },
+  { "id": "FLT-112", "nombre": "Filtro de Aceite Bosch", "categoria": "Mantenimiento", "stock": 58, "precio": 8.75 },
+  { "id": "FLT-220", "nombre": "Filtro de Aire Mann", "categoria": "Mantenimiento", "stock": 41, "precio": 11.30 },
+  { "id": "FLT-334", "nombre": "Filtro de Combustible Hengst", "categoria": "Mantenimiento", "stock": 35, "precio": 9.60 },
+  { "id": "FLT-450", "nombre": "Filtro de Habitáculo Mahle", "categoria": "Mantenimiento", "stock": 0, "precio": 7.80 },
+  { "id": "BRK-880", "nombre": "Pastillas de Freno Brembo", "categoria": "Frenos", "stock": 22, "precio": 45.20 },
+  { "id": "BRK-910", "nombre": "Disco de Freno Zimmermann", "categoria": "Frenos", "stock": 14, "precio": 68.00 },
+  { "id": "BRK-975", "nombre": "Líquido de Frenos Motul DOT4", "categoria": "Frenos", "stock": 50, "precio": 6.50 },
+  { "id": "SUS-310", "nombre": "Amortiguador Delantero Monroe", "categoria": "Suspensión", "stock": 11, "precio": 95.00 },
+  { "id": "SUS-422", "nombre": "Resorte de Suspensión Sachs", "categoria": "Suspensión", "stock": 8, "precio": 72.00 },
+  { "id": "SUS-515", "nombre": "Buje de Control Moog", "categoria": "Suspensión", "stock": 3, "precio": 18.40 },
+  { "id": "SUS-601", "nombre": "Rótula de Dirección TRW", "categoria": "Suspensión", "stock": 20, "precio": 31.00 },
+  { "id": "BRK-1020", "nombre": "Calibrador de Freno Cardone", "categoria": "Frenos", "stock": 6, "precio": 110.00 }
+]
