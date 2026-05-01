@@ -3,29 +3,30 @@ import DashboardLayout from '../../components/layout/DashboardLayout'
 import ConfirmModal from '../../components/ui/ConfirmModal'
 import usuariosData from '../../data/usuarios.json'
 import styles from './Users.module.css'
+import type { Usuario } from '../../types'
 
 export default function Users() {
-  const [data, setData] = useState(usuariosData)
+  const [data, setData] = useState<Usuario[]>(usuariosData as Usuario[])
   const [showModal, setShowModal] = useState(false)
-  const [editTarget, setEditTarget] = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [editTarget, setEditTarget] = useState<Usuario | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Usuario | null>(null)
   const [page, setPage] = useState(1)
   const ITEMS_PER_PAGE = 5
 
   const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE)
   const paginated = data.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
-  function handleDelete(id) {
+  function handleDelete(id: string) {
     setData(prev => prev.filter(u => u.id !== id))
     setDeleteTarget(null)
   }
 
-  function handleEdit(usuario) {
+  function handleEdit(usuario: Usuario) {
     setEditTarget(usuario)
     setShowModal(true)
   }
 
-  function handleSave(usuario) {
+  function handleSave(usuario: Usuario) {
     if (editTarget) {
       setData(prev => prev.map(u => u.id === usuario.id ? usuario : u))
     } else {
@@ -137,14 +138,22 @@ export default function Users() {
   )
 }
 
-function UserModal({ usuario, onSave, onClose }) {
-  const [form, setForm] = useState(usuario ?? { nombre: '', correo: '', rol: 'trabajador', estado: 'activo' })
+interface UserModalProps {
+  usuario: Usuario | null
+  onSave: (usuario: Usuario) => void
+  onClose: () => void
+}
 
-  function handleChange(e) {
+function UserModal({ usuario, onSave, onClose }: UserModalProps) {
+  const [form, setForm] = useState<Usuario>(
+    usuario ?? { id: '', nombre: '', correo: '', rol: 'trabajador' }
+  )
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  function handleSubmit(e) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     onSave(form)
   }
@@ -158,8 +167,8 @@ function UserModal({ usuario, onSave, onClose }) {
         </div>
         <form className={styles.modalForm} onSubmit={handleSubmit}>
           {[
-            { name: 'nombre', label: 'Nombre', placeholder: 'Ana Torres' },
-            { name: 'correo', label: 'Correo electrónico', placeholder: 'ana@autotools.com', type: 'email' },
+            { name: 'nombre' as keyof Usuario, label: 'Nombre', placeholder: 'Ana Torres' },
+            { name: 'correo' as keyof Usuario, label: 'Correo electrónico', placeholder: 'ana@autotools.com', type: 'email' },
           ].map(f => (
             <div className={styles.field} key={f.name}>
               <label className={styles.label}>{f.label}</label>
@@ -171,13 +180,6 @@ function UserModal({ usuario, onSave, onClose }) {
             <select className={styles.input} name="rol" value={form.rol} onChange={handleChange}>
               <option value="trabajador">Trabajador</option>
               <option value="admin">Admin</option>
-            </select>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Estado</label>
-            <select className={styles.input} name="estado" value={form.estado} onChange={handleChange}>
-              <option value="activo">Activo</option>
-              <option value="inactivo">Inactivo</option>
             </select>
           </div>
           <div className={styles.modalActions}>

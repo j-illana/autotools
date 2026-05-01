@@ -65,11 +65,6 @@
 .rolAdmin { background-color: rgba(122,162,247,0.15); color: var(--accent); }
 .rolWorker { background-color: var(--bg-tertiary); color: var(--text-secondary); }
 
-.estado { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
-.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.dotActivo { background-color: var(--success); }
-.dotInactivo { background-color: var(--text-secondary); }
-
 .actions { display: flex; gap: 0.5rem; }
 .editBtn, .deleteBtn {
   background: transparent; border: none; cursor: pointer; padding: 0.3rem;

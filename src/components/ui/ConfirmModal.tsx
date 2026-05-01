@@ -1,6 +1,13 @@
 import styles from './ConfirmModal.module.css'
 
-export default function ConfirmModal({ title, message, onConfirm, onClose }) {
+interface ConfirmModalProps {
+  title: string
+  message: string
+  onConfirm: () => void
+  onClose: () => void
+}
+
+export default function ConfirmModal({ title, message, onConfirm, onClose }: ConfirmModalProps) {
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>

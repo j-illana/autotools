@@ -1,8 +1,15 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import styles from './DashboardLayout.module.css'
+import type { ReactNode } from 'react'
 
-const navItems = [
+interface NavItem {
+  to: string
+  label: string
+  icon: ReactNode
+}
+
+const navItems: NavItem[] = [
   {
     to: '/dashboard/inventario',
     label: 'INVENTARIO',
@@ -23,7 +30,7 @@ const navItems = [
   },
 ]
 
-const adminItems = [
+const adminItems: NavItem[] = [
   {
     to: '/dashboard/usuarios',
     label: 'GESTIÓN DE USUARIOS',
@@ -35,7 +42,7 @@ const adminItems = [
   },
 ]
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 

@@ -5,7 +5,7 @@ import styles from './Search.module.css'
 
 const ITEMS_PER_PAGE = 5
 
-function StockBar({ stock }) {
+function StockBar({ stock }: { stock: number }) {
   const max = 150
   const pct = Math.min((stock / max) * 100, 100)
   const color = stock <= 5 ? 'var(--danger)' : stock <= 20 ? 'var(--warning)' : 'var(--accent)'
@@ -35,7 +35,7 @@ export default function Search() {
   const totalPages = Math.ceil(results.length / ITEMS_PER_PAGE)
   const paginated = results.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
-  function handleSearch(e) {
+  function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const q = query.trim()
     if (!q) return

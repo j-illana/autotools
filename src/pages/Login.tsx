@@ -15,14 +15,14 @@ export default function Login() {
     return null
   }
 
-  function handleSubmit(e) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     const result = login(correo, contrasena)
     if (result.ok) {
       navigate('/dashboard/inventario')
     } else {
-      setError(result.error)
+      setError(result.error ?? 'Error desconocido')
     }
   }
 

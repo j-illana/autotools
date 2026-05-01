@@ -2,7 +2,14 @@ import DashboardLayout from '../../components/layout/DashboardLayout'
 import productos from '../../data/productos.json'
 import styles from './Reports.module.css'
 
-function StatCard({ label, value, sub, color }) {
+interface StatCardProps {
+  label: string
+  value: string | number
+  sub?: string
+  color?: string
+}
+
+function StatCard({ label, value, sub, color }: StatCardProps) {
   return (
     <div className={styles.card}>
       <span className={styles.cardLabel}>{label}</span>
@@ -18,7 +25,7 @@ export default function Reports() {
   const sinStock = productos.filter(p => p.stock === 0).length
   const valorTotal = productos.reduce((acc, p) => acc + p.precio * p.stock, 0)
 
-  const porCategoria = productos.reduce((acc, p) => {
+  const porCategoria = productos.reduce<Record<string, number>>((acc, p) => {
     acc[p.categoria] = (acc[p.categoria] || 0) + 1
     return acc
   }, {})

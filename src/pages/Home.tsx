@@ -6,7 +6,7 @@ export default function Home() {
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
 
-  function handleSearch(e) {
+  function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const q = query.trim()
     if (!q) return

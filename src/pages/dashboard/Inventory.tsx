@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import ConfirmModal from '../../components/ui/ConfirmModal'
-import productos from '../../data/productos.json'
+import productosData from '../../data/productos.json'
 import styles from './Inventory.module.css'
+import type { Producto } from '../../types'
 
 const ITEMS_PER_PAGE = 5
 
-function StockBar({ stock }) {
+function StockBar({ stock }: { stock: number }) {
   const max = 150
   const pct = Math.min((stock / max) * 100, 100)
   const color = stock <= 5 ? 'var(--danger)' : stock <= 20 ? 'var(--warning)' : 'var(--accent)'
@@ -26,9 +27,9 @@ export default function Inventory() {
   const [estadoStock, setEstadoStock] = useState('')
   const [page, setPage] = useState(1)
   const [showModal, setShowModal] = useState(false)
-  const [editTarget, setEditTarget] = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)
-  const [data, setData] = useState(productos)
+  const [editTarget, setEditTarget] = useState<Producto | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Producto | null>(null)
+  const [data, setData] = useState<Producto[]>(productosData)
 
   const categorias = [...new Set(data.map(p => p.categoria))]
 
@@ -45,12 +46,12 @@ export default function Inventory() {
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
-  function handleDelete(id) {
+  function handleDelete(id: string) {
     setData(prev => prev.filter(p => p.id !== id))
     setDeleteTarget(null)
   }
 
-  function handleEdit(producto) {
+  function handleEdit(producto: Producto) {
     setEditTarget(producto)
     setShowModal(true)
   }
@@ -60,7 +61,7 @@ export default function Inventory() {
     setShowModal(true)
   }
 
-  function handleSave(producto) {
+  function handleSave(producto: Producto) {
     if (editTarget) {
       setData(prev => prev.map(p => p.id === producto.id ? producto : p))
     } else {
@@ -188,14 +189,27 @@ export default function Inventory() {
   )
 }
 
-function ProductModal({ producto, categorias, onSave, onClose }) {
-  const [form, setForm] = useState(producto ?? { id: '', nombre: '', categoria: '', stock: '', precio: '' })
+interface ProductModalProps {
+  producto: Producto | null
+  categorias: string[]
+  onSave: (producto: Producto) => void
+  onClose: () => void
+}
 
-  function handleChange(e) {
+// El form usa strings para los inputs numéricos mientras el usuario escribe,
+// luego se convierten a number en el submit.
+type ProductoForm = Omit<Producto, 'stock' | 'precio'> & { stock: string | number; precio: string | number }
+
+function ProductModal({ producto, categorias, onSave, onClose }: ProductModalProps) {
+  const [form, setForm] = useState<ProductoForm>(
+    producto ?? { id: '', nombre: '', categoria: '', stock: '', precio: '' }
+  )
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  function handleSubmit(e) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     onSave({ ...form, stock: Number(form.stock), precio: Number(form.precio) })
   }
@@ -209,10 +223,10 @@ function ProductModal({ producto, categorias, onSave, onClose }) {
         </div>
         <form className={styles.modalForm} onSubmit={handleSubmit}>
           {[
-            { name: 'id', label: 'Código', placeholder: 'ENG-202', disabled: !!producto },
-            { name: 'nombre', label: 'Nombre', placeholder: 'Bujía de Iridio NGK' },
-            { name: 'stock', label: 'Stock', placeholder: '0', type: 'number' },
-            { name: 'precio', label: 'Precio (MXN)', placeholder: '0.00', type: 'number' },
+            { name: 'id' as keyof ProductoForm, label: 'Código', placeholder: 'ENG-202', disabled: !!producto },
+            { name: 'nombre' as keyof ProductoForm, label: 'Nombre', placeholder: 'Bujía de Iridio NGK' },
+            { name: 'stock' as keyof ProductoForm, label: 'Stock', placeholder: '0', type: 'number' },
+            { name: 'precio' as keyof ProductoForm, label: 'Precio (MXN)', placeholder: '0.00', type: 'number' },
           ].map(f => (
             <div className={styles.field} key={f.name}>
               <label className={styles.label}>{f.label}</label>

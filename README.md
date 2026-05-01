@@ -1,16 +1,104 @@
-# React + Vite
+# AutoTools App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web para la gestión interna de una distribuidora de autopartes. Permite a los empleados consultar inventario, generar reportes y administrar usuarios, con control de acceso basado en roles.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** + **Vite 8**
+- **TypeScript 5** — tipado estático estricto (`strict: true`)
+- **React Router DOM v7** — enrutamiento client-side
+- **Context API** — manejo de autenticación y sesión
+- **CSS Modules** — estilos por componente
 
-## React Compiler
+## Requisitos previos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Node.js** v18 o superior
+- **npm** v9 o superior
 
-## Expanding the ESLint configuration
+Verificá tus versiones con:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+node -v
+npm -v
+```
+
+## Estructura del proyecto
+
+```
+src/
+├── components/
+│   ├── features/       # Componentes de dominio
+│   ├── layout/         # Estructura general (navbar, sidebar, etc.)
+│   └── ui/             # Componentes reutilizables (botones, inputs, etc.)
+├── context/
+│   └── AuthContext.tsx # Autenticación y sesión con localStorage
+├── data/
+│   ├── productos.json  # Catálogo de productos (mock)
+│   └── usuarios.json   # Usuarios del sistema (mock)
+├── pages/
+│   ├── Home.tsx        # Landing pública
+│   ├── Login.tsx       # Inicio de sesión
+│   ├── Search.tsx      # Búsqueda de productos
+│   └── dashboard/
+│       ├── Inventory.tsx  # Gestión de inventario (privado)
+│       ├── Reports.tsx    # Reportes (privado)
+│       └── Users.tsx      # Administración de usuarios (solo admin)
+├── router/
+│   └── index.tsx       # Rutas con guards de autenticación y rol
+├── types/
+│   └── index.ts        # Tipos globales: Usuario, Producto, AuthContext
+└── vite-env.d.ts       # Declaraciones de módulos (CSS, assets)
+```
+
+## Rutas
+
+| Ruta                    | Acceso         | Descripción                        |
+|-------------------------|----------------|------------------------------------|
+| `/`                     | Público        | Página de inicio                   |
+| `/login`                | Público        | Inicio de sesión                   |
+| `/busqueda`             | Público        | Búsqueda de productos              |
+| `/dashboard/inventario` | Autenticado    | Gestión de inventario              |
+| `/dashboard/reportes`   | Autenticado    | Reportes del sistema               |
+| `/dashboard/usuarios`   | Solo `admin`   | Administración de usuarios         |
+
+## Roles
+
+| Rol          | Permisos                                         |
+|--------------|--------------------------------------------------|
+| `admin`      | Acceso completo, incluyendo gestión de usuarios  |
+| `trabajador` | Acceso a inventario y reportes                   |
+
+## Instalación y uso
+
+```bash
+# Instalar dependencias
+npm install
+
+# Servidor de desarrollo
+npm run dev
+
+# Verificar tipos sin compilar
+npm run typecheck
+
+# Build de producción
+npm run build
+
+# Preview del build
+npm run preview
+
+# Lint
+npm run lint
+```
+
+## Credenciales de prueba
+
+La contraseña para todos los usuarios es `1234`.
+
+| Nombre       | Correo                        | Rol         |
+|--------------|-------------------------------|-------------|
+| Elena Rojas  | elena.r@autotools.com         | admin       |
+| Ana Torres   | ana.torres@autotools.com      | trabajador  |
+| Luis Gómez   | luis.gomez@autotools.com      | trabajador  |
+
+> **Nota:** Los datos (usuarios y productos) son mocks estáticos en archivos JSON dentro de `src/data/`.
+
