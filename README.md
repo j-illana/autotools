@@ -15,7 +15,7 @@ Aplicación web para la gestión interna de una distribuidora de autopartes. Per
 - **Node.js** v18 o superior
 - **npm** v9 o superior
 
-Verificá tus versiones con:
+Verifica tus versiones con:
 
 ```bash
 node -v
