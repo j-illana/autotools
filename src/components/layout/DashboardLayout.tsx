@@ -51,7 +51,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     navigate('/')
   }
 
-  const items = user?.rol === 'admin' ? [...navItems, ...adminItems] : navItems
+  const items = user?.role === 'admin' ? [...navItems, ...adminItems] : navItems
 
   return (
     <div className={styles.wrapper}>
@@ -100,9 +100,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <div className={styles.divider} />
             <div className={styles.userMenu}>
               <div className={styles.avatar}>
-                {user?.nombre?.charAt(0).toUpperCase()}
+                {user?.name?.charAt(0).toUpperCase()}
               </div>
-              <span className={styles.userName}>{user?.nombre?.split(' ')[0]}</span>
+              <span className={styles.userName}>{user?.name?.split(' ')[0]}</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m6 9 6 6 6-6"/>
               </svg>

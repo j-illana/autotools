@@ -1,23 +1,25 @@
-// Modelos del dominio
+// Domain models
 
-export type Rol = 'admin' | 'trabajador'
+export type Role = 'admin' | 'worker'
 
-export interface Usuario {
-  id: string
-  nombre: string
-  correo: string
-  rol: Rol
+export interface User {
+  id: number
+  name: string
+  email: string
+  role: Role
 }
 
-export interface Producto {
+export interface Product {
   id: string
-  nombre: string
-  categoria: string
+  name: string
+  category: string
   stock: number
-  precio: number
+  min_stock: number
+  max_stock: number
+  price: number
 }
 
-// Contratos del AuthContext
+// Auth context contracts
 
 export interface LoginResult {
   ok: boolean
@@ -25,7 +27,8 @@ export interface LoginResult {
 }
 
 export interface AuthContextType {
-  user: Usuario | null
-  login: (correo: string, contrasena: string) => LoginResult
+  user: User | null
+  token: string | null
+  login: (email: string, password: string) => Promise<LoginResult>
   logout: () => void
 }

@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
-import productos from '../data/productos.json'
 import styles from './Search.module.css'
+import type { Product } from '../types'
+import { api } from '../api/client'
 
 const ITEMS_PER_PAGE = 5
 
-function StockBar({ stock }: { stock: number }) {
-  const max = 150
-  const pct = Math.min((stock / max) * 100, 100)
-  const color = stock <= 5 ? 'var(--danger)' : stock <= 20 ? 'var(--warning)' : 'var(--accent)'
+function StockBar({ stock, minStock, maxStock }: { stock: number; minStock: number; maxStock: number }) {
+  const pct = Math.min((stock / maxStock) * 100, 100)
+  const color = stock === 0 ? 'var(--danger)' : stock <= minStock ? 'var(--warning)' : 'var(--accent)'
   return (
     <div className={styles.stockCell}>
       <span>{stock}</span>
@@ -24,12 +24,17 @@ export default function Search() {
   const navigate = useNavigate()
   const initialQuery = searchParams.get('q') || ''
   const [query, setQuery] = useState(initialQuery)
+  const [products, setProducts] = useState<Product[]>([])
   const [page, setPage] = useState(1)
 
+  useEffect(() => {
+    api.get<Product[]>('/products').then(setProducts).catch(console.error)
+  }, [])
+
   const q = searchParams.get('q')?.toLowerCase() || ''
-  const results = productos.filter(p =>
+  const results = products.filter(p =>
     p.id.toLowerCase().includes(q) ||
-    p.nombre.toLowerCase().includes(q)
+    p.name.toLowerCase().includes(q)
   )
 
   const totalPages = Math.ceil(results.length / ITEMS_PER_PAGE)
@@ -99,10 +104,10 @@ export default function Search() {
                 {paginated.map(p => (
                   <tr key={p.id}>
                     <td><span className={styles.badge}>{p.id}</span></td>
-                    <td>{p.nombre}</td>
-                    <td className={styles.categoria}>{p.categoria}</td>
-                    <td><StockBar stock={p.stock} /></td>
-                    <td className={styles.precio}>{p.precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                    <td>{p.name}</td>
+                    <td className={styles.categoria}>{p.category}</td>
+                    <td><StockBar stock={p.stock} minStock={p.min_stock} maxStock={p.max_stock} /></td>
+                    <td className={styles.precio}>{p.price.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                   </tr>
                 ))}
               </tbody>
@@ -114,23 +119,11 @@ export default function Search() {
               </span>
               {totalPages > 1 && (
                 <div className={styles.pagination}>
-                  <button
-                    className={styles.pageArrow}
-                    onClick={() => setPage(p => Math.max(p - 1, 1))}
-                    disabled={page === 1}
-                  >‹</button>
+                  <button className={styles.pageArrow} onClick={() => setPage(p => Math.max(p - 1, 1))} disabled={page === 1}>‹</button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-                    <button
-                      key={n}
-                      className={`${styles.pageBtn} ${n === page ? styles.pageBtnActive : ''}`}
-                      onClick={() => setPage(n)}
-                    >{n}</button>
+                    <button key={n} className={`${styles.pageBtn} ${n === page ? styles.pageBtnActive : ''}`} onClick={() => setPage(n)}>{n}</button>
                   ))}
-                  <button
-                    className={styles.pageArrow}
-                    onClick={() => setPage(p => Math.min(p + 1, totalPages))}
-                    disabled={page === totalPages}
-                  >›</button>
+                  <button className={styles.pageArrow} onClick={() => setPage(p => Math.min(p + 1, totalPages))} disabled={page === totalPages}>›</button>
                 </div>
               )}
             </div>

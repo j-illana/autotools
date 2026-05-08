@@ -2,6 +2,8 @@
 
 Aplicación web para la gestión interna de una distribuidora de autopartes. Permite a los empleados consultar inventario, generar reportes y administrar usuarios, con control de acceso basado en roles.
 
+> **Requisito:** Este frontend consume la API REST de [autotools-backend](https://github.com/j-illana/autotools-backend). Asegúrate de tenerlo corriendo antes de levantar el frontend.
+
 ## Stack
 
 - **React 19** + **Vite 8**
@@ -22,39 +24,72 @@ node -v
 npm -v
 ```
 
+## Instalación
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/j-illana/autotools.git
+cd autotools
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Crear el archivo de entorno
+cp .env.example .env
+```
+
+Edita el `.env` con la URL de tu backend:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+Si el backend corre en otro puerto o host, actualiza ese valor.
+
+```bash
+# 4. Levantar el servidor de desarrollo
+npm run dev
+```
+
+La app estará disponible en `http://localhost:5173`.
+
+## Variables de entorno
+
+| Variable | Descripción | Valor por defecto |
+|----------|-------------|-------------------|
+| `VITE_API_URL` | URL base de la API REST | `http://localhost:3000/api` |
+
 ## Estructura del proyecto
 
 ```
 src/
+├── api/
+│   └── client.ts       # Wrapper de fetch con JWT automático
 ├── components/
-│   ├── features/       # Componentes de dominio
-│   ├── layout/         # Estructura general (navbar, sidebar, etc.)
-│   └── ui/             # Componentes reutilizables (botones, inputs, etc.)
+│   ├── layout/         # DashboardLayout, sidebar, navbar
+│   └── ui/             # Componentes reutilizables (modales, etc.)
 ├── context/
 │   └── AuthContext.tsx # Autenticación y sesión con localStorage
-├── data/
-│   ├── productos.json  # Catálogo de productos (mock)
-│   └── usuarios.json   # Usuarios del sistema (mock)
 ├── pages/
-│   ├── Home.tsx        # Landing pública
+│   ├── Home.tsx        # Landing pública con buscador
 │   ├── Login.tsx       # Inicio de sesión
-│   ├── Search.tsx      # Búsqueda de productos
+│   ├── Search.tsx      # Búsqueda pública de productos
 │   └── dashboard/
 │       ├── Inventory.tsx  # Gestión de inventario (privado)
-│       ├── Reports.tsx    # Reportes (privado)
+│       ├── Reports.tsx    # Reportes del sistema (privado)
 │       └── Users.tsx      # Administración de usuarios (solo admin)
 ├── router/
-│   └── index.tsx       # Rutas con guards de autenticación y rol
+│   └── index.tsx       # Rutas con PrivateRoute y PublicRoute
 ├── types/
-│   └── index.ts        # Tipos globales: Usuario, Producto, AuthContext
-└── vite-env.d.ts       # Declaraciones de módulos (CSS, assets)
+│   └── index.ts        # Tipos globales: User, Product, Role
+└── vite-env.d.ts       # Tipos de variables de entorno Vite
 ```
 
 ## Rutas
 
 | Ruta                    | Acceso         | Descripción                        |
 |-------------------------|----------------|------------------------------------|
-| `/`                     | Público        | Página de inicio                   |
+| `/`                     | Público        | Página de inicio con buscador      |
 | `/login`                | Público        | Inicio de sesión                   |
 | `/busqueda`             | Público        | Búsqueda de productos              |
 | `/dashboard/inventario` | Autenticado    | Gestión de inventario              |
@@ -63,42 +98,26 @@ src/
 
 ## Roles
 
-| Rol          | Permisos                                         |
-|--------------|--------------------------------------------------|
-| `admin`      | Acceso completo, incluyendo gestión de usuarios  |
-| `trabajador` | Acceso a inventario y reportes                   |
-
-## Instalación y uso
-
-```bash
-# Instalar dependencias
-npm install
-
-# Servidor de desarrollo
-npm run dev
-
-# Verificar tipos sin compilar
-npm run typecheck
-
-# Build de producción
-npm run build
-
-# Preview del build
-npm run preview
-
-# Lint
-npm run lint
-```
+| Rol      | Permisos                                        |
+|----------|-------------------------------------------------|
+| `admin`  | Acceso completo, incluyendo gestión de usuarios |
+| `worker` | Acceso a inventario y reportes                  |
 
 ## Credenciales de prueba
 
-La contraseña para todos los usuarios es `1234`.
+Los usuarios de prueba se crean con el seed del backend (`npm run seed:users`).
 
-| Nombre       | Correo                        | Rol         |
-|--------------|-------------------------------|-------------|
-| Elena Rojas  | elena.r@autotools.com         | admin       |
-| Ana Torres   | ana.torres@autotools.com      | trabajador  |
-| Luis Gómez   | luis.gomez@autotools.com      | trabajador  |
+| Correo                        | Contraseña | Rol    |
+|-------------------------------|------------|--------|
+| joseph.illana.j@gmail.com     | admin123   | admin  |
+| joseph.illana@outlook.com     | worker123  | worker |
 
-> **Nota:** Los datos (usuarios y productos) son mocks estáticos en archivos JSON dentro de `src/data/`.
+## Comandos disponibles
 
+```bash
+npm run dev        # Servidor de desarrollo
+npm run build      # Build de producción
+npm run preview    # Preview del build
+npm run lint       # Lint con ESLint
+npx tsc --noEmit   # Verificar tipos sin compilar
+```

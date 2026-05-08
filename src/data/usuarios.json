@@ -1,5 +1,0 @@
-[
-  { "id": "001", "nombre": "Elena Rojas", "correo": "elena.r@autotools.com", "rol": "admin" },
-  { "id": "002", "nombre": "Ana Torres", "correo": "ana.torres@autotools.com", "rol": "trabajador" },
-  { "id": "003", "nombre": "Luis Gómez", "correo": "luis.gomez@autotools.com", "rol": "trabajador" }
-]

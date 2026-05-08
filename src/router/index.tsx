@@ -17,7 +17,13 @@ interface PrivateRouteProps {
 function PrivateRoute({ children, adminOnly = false }: PrivateRouteProps) {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
-  if (adminOnly && user.rol !== 'admin') return <Navigate to="/dashboard/inventario" replace />
+  if (adminOnly && user.role !== 'admin') return <Navigate to="/dashboard/inventario" replace />
+  return <>{children}</>
+}
+
+function PublicRoute({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  if (user) return <Navigate to="/dashboard/inventario" replace />
   return <>{children}</>
 }
 
@@ -25,8 +31,8 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/busqueda" element={<Search />} />
         <Route
           path="/dashboard/inventario"

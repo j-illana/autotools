@@ -1,16 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import ConfirmModal from '../../components/ui/ConfirmModal'
-import productosData from '../../data/productos.json'
 import styles from './Inventory.module.css'
-import type { Producto } from '../../types'
+import type { Product } from '../../types'
+import { api } from '../../api/client'
 
 const ITEMS_PER_PAGE = 5
 
-function StockBar({ stock }: { stock: number }) {
-  const max = 150
-  const pct = Math.min((stock / max) * 100, 100)
-  const color = stock <= 5 ? 'var(--danger)' : stock <= 20 ? 'var(--warning)' : 'var(--accent)'
+function StockBar({ stock, minStock, maxStock }: { stock: number; minStock: number; maxStock: number }) {
+  const pct = Math.min((stock / maxStock) * 100, 100)
+  const color = stock === 0 ? 'var(--danger)' : stock <= minStock ? 'var(--warning)' : 'var(--accent)'
   return (
     <div className={styles.stockCell}>
       <span>{stock}</span>
@@ -23,22 +22,31 @@ function StockBar({ stock }: { stock: number }) {
 
 export default function Inventory() {
   const [query, setQuery] = useState('')
-  const [categoria, setCategoria] = useState('')
-  const [estadoStock, setEstadoStock] = useState('')
+  const [category, setCategory] = useState('')
+  const [stockStatus, setStockStatus] = useState('')
   const [page, setPage] = useState(1)
   const [showModal, setShowModal] = useState(false)
-  const [editTarget, setEditTarget] = useState<Producto | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Producto | null>(null)
-  const [data, setData] = useState<Producto[]>(productosData)
+  const [editTarget, setEditTarget] = useState<Product | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
+  const [data, setData] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const categorias = [...new Set(data.map(p => p.categoria))]
+  useEffect(() => {
+    api.get<Product[]>('/products')
+      .then(setData)
+      .catch(err => setError((err as Error).message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const categories = [...new Set(data.map(p => p.category))]
 
   const filtered = data.filter(p => {
     const matchQuery = p.id.toLowerCase().includes(query.toLowerCase()) ||
-      p.nombre.toLowerCase().includes(query.toLowerCase())
-    const matchCat = categoria ? p.categoria === categoria : true
-    const matchStock = estadoStock === 'bajo' ? p.stock <= 20
-      : estadoStock === 'sin' ? p.stock === 0
+      p.name.toLowerCase().includes(query.toLowerCase())
+    const matchCat = category ? p.category === category : true
+    const matchStock = stockStatus === 'low' ? p.stock <= p.min_stock
+      : stockStatus === 'out' ? p.stock === 0
       : true
     return matchQuery && matchCat && matchStock
   })
@@ -46,13 +54,14 @@ export default function Inventory() {
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
+    await api.delete(`/products/${id}`)
     setData(prev => prev.filter(p => p.id !== id))
     setDeleteTarget(null)
   }
 
-  function handleEdit(producto: Producto) {
-    setEditTarget(producto)
+  function handleEdit(product: Product) {
+    setEditTarget(product)
     setShowModal(true)
   }
 
@@ -61,15 +70,20 @@ export default function Inventory() {
     setShowModal(true)
   }
 
-  function handleSave(producto: Producto) {
+  async function handleSave(product: Product) {
     if (editTarget) {
-      setData(prev => prev.map(p => p.id === producto.id ? producto : p))
+      await api.put(`/products/${product.id}`, product)
+      setData(prev => prev.map(p => p.id === product.id ? product : p))
     } else {
-      setData(prev => [...prev, producto])
+      await api.post('/products', product)
+      setData(prev => [...prev, product])
     }
     setShowModal(false)
     setEditTarget(null)
   }
+
+  if (loading) return <DashboardLayout><p style={{ padding: '2rem' }}>Cargando inventario...</p></DashboardLayout>
+  if (error) return <DashboardLayout><p style={{ padding: '2rem', color: 'var(--danger)' }}>Error: {error}</p></DashboardLayout>
 
   return (
     <DashboardLayout>
@@ -89,15 +103,15 @@ export default function Inventory() {
             />
           </div>
 
-          <select className={styles.select} value={categoria} onChange={e => { setCategoria(e.target.value); setPage(1) }}>
+          <select className={styles.select} value={category} onChange={e => { setCategory(e.target.value); setPage(1) }}>
             <option value="">Todas las Categorías</option>
-            {categorias.map(c => <option key={c} value={c}>{c}</option>)}
+            {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
 
-          <select className={styles.select} value={estadoStock} onChange={e => { setEstadoStock(e.target.value); setPage(1) }}>
+          <select className={styles.select} value={stockStatus} onChange={e => { setStockStatus(e.target.value); setPage(1) }}>
             <option value="">Estado de Stock</option>
-            <option value="bajo">Stock bajo (≤20)</option>
-            <option value="sin">Sin stock</option>
+            <option value="low">Stock bajo</option>
+            <option value="out">Sin stock</option>
           </select>
 
           <button className={styles.addBtn} onClick={handleAdd}>
@@ -128,10 +142,10 @@ export default function Inventory() {
               ) : paginated.map(p => (
                 <tr key={p.id}>
                   <td><span className={styles.badge}>{p.id}</span></td>
-                  <td>{p.nombre}</td>
-                  <td className={styles.categoria}>{p.categoria}</td>
-                  <td><StockBar stock={p.stock} /></td>
-                  <td className={styles.precio}>{p.precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                  <td>{p.name}</td>
+                  <td className={styles.categoria}>{p.category}</td>
+                  <td><StockBar stock={p.stock} minStock={p.min_stock} maxStock={p.max_stock} /></td>
+                  <td className={styles.precio}>{p.price.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                   <td>
                     <div className={styles.actions}>
                       <button className={styles.editBtn} onClick={() => handleEdit(p)} title="Editar">
@@ -170,8 +184,8 @@ export default function Inventory() {
 
       {showModal && (
         <ProductModal
-          producto={editTarget}
-          categorias={categorias}
+          product={editTarget}
+          categories={categories}
           onSave={handleSave}
           onClose={() => { setShowModal(false); setEditTarget(null) }}
         />
@@ -180,7 +194,7 @@ export default function Inventory() {
       {deleteTarget && (
         <ConfirmModal
           title="¿Eliminar producto?"
-          message={`Estás por eliminar "${deleteTarget.nombre}". Esta acción no se puede deshacer.`}
+          message={`Estás por eliminar "${deleteTarget.name}". Esta acción no se puede deshacer.`}
           onConfirm={() => handleDelete(deleteTarget.id)}
           onClose={() => setDeleteTarget(null)}
         />
@@ -190,20 +204,26 @@ export default function Inventory() {
 }
 
 interface ProductModalProps {
-  producto: Producto | null
-  categorias: string[]
-  onSave: (producto: Producto) => void
+  product: Product | null
+  categories: string[]
+  onSave: (product: Product) => void
   onClose: () => void
 }
 
-// El form usa strings para los inputs numéricos mientras el usuario escribe,
-// luego se convierten a number en el submit.
-type ProductoForm = Omit<Producto, 'stock' | 'precio'> & { stock: string | number; precio: string | number }
+type ProductForm = Omit<Product, 'stock' | 'price' | 'min_stock' | 'max_stock'> & {
+  stock: string | number
+  price: string | number
+  min_stock: string | number
+  max_stock: string | number
+}
 
-function ProductModal({ producto, categorias, onSave, onClose }: ProductModalProps) {
-  const [form, setForm] = useState<ProductoForm>(
-    producto ?? { id: '', nombre: '', categoria: '', stock: '', precio: '' }
+function ProductModal({ product, categories, onSave, onClose }: ProductModalProps) {
+  const [form, setForm] = useState<ProductForm>(
+    product ?? { id: '', name: '', category: '', stock: '', min_stock: '', max_stock: '', price: '' }
   )
+  const [newCategory, setNewCategory] = useState('')
+
+  const isNewCategory = form.category === '__nueva__'
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -211,22 +231,33 @@ function ProductModal({ producto, categorias, onSave, onClose }: ProductModalPro
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    onSave({ ...form, stock: Number(form.stock), precio: Number(form.precio) })
+    const category = isNewCategory ? newCategory.trim() : form.category
+    if (!category) return
+    onSave({
+      ...form,
+      category,
+      stock: Number(form.stock),
+      price: Number(form.price),
+      min_stock: Number(form.min_stock),
+      max_stock: Number(form.max_stock),
+    })
   }
 
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>{producto ? 'Editar producto' : 'Agregar producto'}</h2>
+          <h2 className={styles.modalTitle}>{product ? 'Editar producto' : 'Agregar producto'}</h2>
           <button className={styles.closeBtn} onClick={onClose}>✕</button>
         </div>
         <form className={styles.modalForm} onSubmit={handleSubmit}>
           {[
-            { name: 'id' as keyof ProductoForm, label: 'Código', placeholder: 'ENG-202', disabled: !!producto },
-            { name: 'nombre' as keyof ProductoForm, label: 'Nombre', placeholder: 'Bujía de Iridio NGK' },
-            { name: 'stock' as keyof ProductoForm, label: 'Stock', placeholder: '0', type: 'number' },
-            { name: 'precio' as keyof ProductoForm, label: 'Precio (MXN)', placeholder: '0.00', type: 'number' },
+            { name: 'id' as keyof ProductForm, label: 'Código', placeholder: 'ENG-202', disabled: !!product },
+            { name: 'name' as keyof ProductForm, label: 'Nombre', placeholder: 'Bujía de Iridio NGK' },
+            { name: 'stock' as keyof ProductForm, label: 'Stock', placeholder: '0', type: 'number' },
+            { name: 'min_stock' as keyof ProductForm, label: 'Stock mínimo', placeholder: '5', type: 'number' },
+            { name: 'max_stock' as keyof ProductForm, label: 'Stock máximo', placeholder: '150', type: 'number' },
+            { name: 'price' as keyof ProductForm, label: 'Precio (MXN)', placeholder: '0.00', type: 'number' },
           ].map(f => (
             <div className={styles.field} key={f.name}>
               <label className={styles.label}>{f.label}</label>
@@ -240,21 +271,35 @@ function ProductModal({ producto, categorias, onSave, onClose }: ProductModalPro
                 disabled={f.disabled}
                 required
                 min={f.type === 'number' ? 0 : undefined}
-                step={f.name === 'precio' ? '0.01' : undefined}
+                step={f.name === 'price' ? '0.01' : undefined}
               />
             </div>
           ))}
           <div className={styles.field}>
             <label className={styles.label}>Categoría</label>
-            <select className={styles.input} name="categoria" value={form.categoria} onChange={handleChange} required>
+            <select className={styles.input} name="category" value={form.category} onChange={handleChange} required>
               <option value="">Seleccionar...</option>
-              {categorias.map(c => <option key={c} value={c}>{c}</option>)}
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
               <option value="__nueva__">+ Nueva categoría</option>
             </select>
           </div>
+          {isNewCategory && (
+            <div className={styles.field}>
+              <label className={styles.label}>Nombre de la nueva categoría</label>
+              <input
+                className={styles.input}
+                type="text"
+                placeholder="Ej: Suspensión"
+                value={newCategory}
+                onChange={e => setNewCategory(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+          )}
           <div className={styles.modalActions}>
             <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancelar</button>
-            <button type="submit" className={styles.saveBtn}>{producto ? 'Guardar cambios' : 'Agregar'}</button>
+            <button type="submit" className={styles.saveBtn}>{product ? 'Guardar cambios' : 'Agregar'}</button>
           </div>
         </form>
       </div>

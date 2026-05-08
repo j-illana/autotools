@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import styles from './Login.module.css'
 
 export default function Login() {
-  const [correo, setCorreo] = useState('')
-  const [contrasena, setContrasena] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const { login, user } = useAuth()
   const navigate = useNavigate()
 
@@ -15,10 +16,12 @@ export default function Login() {
     return null
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    const result = login(correo, contrasena)
+    setLoading(true)
+    const result = await login(email, password)
+    setLoading(false)
     if (result.ok) {
       navigate('/dashboard/inventario')
     } else {
@@ -34,38 +37,38 @@ export default function Login() {
 
         <form className={styles.card} onSubmit={handleSubmit}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="correo">Correo electrónico</label>
+            <label className={styles.label} htmlFor="email">Correo electrónico</label>
             <div className={styles.inputBox}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect width="20" height="16" x="2" y="4" rx="2" />
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
               <input
-                id="correo"
+                id="email"
                 type="email"
                 className={styles.input}
                 placeholder="usuario@autotools.com"
-                value={correo}
-                onChange={e => setCorreo(e.target.value)}
+                value={email}
+                onChange={e => setEmail(e.target.value)}
                 required
               />
             </div>
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="contrasena">Contraseña</label>
+            <label className={styles.label} htmlFor="password">Contraseña</label>
             <div className={styles.inputBox}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
               <input
-                id="contrasena"
+                id="password"
                 type="password"
                 className={styles.input}
                 placeholder="••••••••"
-                value={contrasena}
-                onChange={e => setContrasena(e.target.value)}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 required
               />
             </div>
@@ -74,7 +77,9 @@ export default function Login() {
 
           {error && <p className={styles.error}>{error}</p>}
 
-          <button type="submit" className={styles.submitBtn}>Entrar</button>
+          <button type="submit" className={styles.submitBtn} disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
         </form>
 
         <Link to="/" className={styles.backLink}>

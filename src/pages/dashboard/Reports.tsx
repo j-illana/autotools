@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
-import productos from '../../data/productos.json'
+import { api } from '../../api/client'
+import type { Product } from '../../types'
 import styles from './Reports.module.css'
 
 interface StatCardProps {
@@ -20,15 +22,37 @@ function StatCard({ label, value, sub, color }: StatCardProps) {
 }
 
 export default function Reports() {
-  const total = productos.length
-  const stockBajo = productos.filter(p => p.stock <= 20).length
-  const sinStock = productos.filter(p => p.stock === 0).length
-  const valorTotal = productos.reduce((acc, p) => acc + p.precio * p.stock, 0)
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const porCategoria = productos.reduce<Record<string, number>>((acc, p) => {
-    acc[p.categoria] = (acc[p.categoria] || 0) + 1
+  useEffect(() => {
+    api.get<Product[]>('/products')
+      .then((data: Product[]) => setProducts(data))
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const total = products.length
+  const lowStock = products.filter(p => p.stock <= p.min_stock && p.stock > 0)
+  const outOfStock = products.filter(p => p.stock === 0)
+  const totalValue = products.reduce((acc, p) => acc + p.price * p.stock, 0)
+
+  const byCategory = products.reduce<Record<string, number>>((acc, p) => {
+    acc[p.category] = (acc[p.category] || 0) + 1
     return acc
   }, {})
+
+  const stockAlerts = products.filter(p => p.stock <= p.min_stock)
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className={styles.page}>
+          <p>Cargando reportes...</p>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   return (
     <DashboardLayout>
@@ -37,9 +61,9 @@ export default function Reports() {
 
         <div className={styles.stats}>
           <StatCard label="Total de productos" value={total} />
-          <StatCard label="Stock bajo (≤20)" value={stockBajo} color="var(--warning)" sub="productos en alerta" />
-          <StatCard label="Sin stock" value={sinStock} color="var(--danger)" sub="productos agotados" />
-          <StatCard label="Valor del inventario" value={valorTotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} color="var(--accent)" />
+          <StatCard label="Stock bajo" value={lowStock.length} color="var(--warning)" sub="productos en alerta" />
+          <StatCard label="Sin stock" value={outOfStock.length} color="var(--danger)" sub="productos agotados" />
+          <StatCard label="Valor del inventario" value={totalValue.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })} color="var(--accent)" />
         </div>
 
         <div className={styles.section}>
@@ -54,7 +78,7 @@ export default function Reports() {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(porCategoria).map(([cat, qty]) => (
+                {Object.entries(byCategory).map(([cat, qty]) => (
                   <tr key={cat}>
                     <td className={styles.catName}>{cat}</td>
                     <td className={styles.qty}>{qty}</td>
@@ -83,10 +107,10 @@ export default function Reports() {
                 </tr>
               </thead>
               <tbody>
-                {productos.filter(p => p.stock <= 20).map(p => (
+                {stockAlerts.map(p => (
                   <tr key={p.id}>
                     <td><span className={styles.badge}>{p.id}</span></td>
-                    <td>{p.nombre}</td>
+                    <td>{p.name}</td>
                     <td className={styles.qty}>{p.stock}</td>
                     <td>
                       <span className={`${styles.alertBadge} ${p.stock === 0 ? styles.alertRed : styles.alertYellow}`}>
@@ -95,7 +119,7 @@ export default function Reports() {
                     </td>
                   </tr>
                 ))}
-                {productos.filter(p => p.stock <= 20).length === 0 && (
+                {stockAlerts.length === 0 && (
                   <tr><td colSpan={4} className={styles.empty}>Sin alertas activas</td></tr>
                 )}
               </tbody>

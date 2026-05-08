@@ -1,41 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import ConfirmModal from '../../components/ui/ConfirmModal'
-import usuariosData from '../../data/usuarios.json'
 import styles from './Users.module.css'
-import type { Usuario } from '../../types'
+import type { User } from '../../types'
+import { api } from '../../api/client'
+
+type UserWithPassword = User & { password?: string }
 
 export default function Users() {
-  const [data, setData] = useState<Usuario[]>(usuariosData as Usuario[])
+  const [data, setData] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
-  const [editTarget, setEditTarget] = useState<Usuario | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Usuario | null>(null)
+  const [editTarget, setEditTarget] = useState<User | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
   const [page, setPage] = useState(1)
   const ITEMS_PER_PAGE = 5
+
+  useEffect(() => {
+    api.get<User[]>('/users')
+      .then(setData)
+      .catch(err => setError((err as Error).message))
+      .finally(() => setLoading(false))
+  }, [])
 
   const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE)
   const paginated = data.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: number) {
+    await api.delete(`/users/${id}`)
     setData(prev => prev.filter(u => u.id !== id))
     setDeleteTarget(null)
   }
 
-  function handleEdit(usuario: Usuario) {
-    setEditTarget(usuario)
+  function handleEdit(user: User) {
+    setEditTarget(user)
     setShowModal(true)
   }
 
-  function handleSave(usuario: Usuario) {
+  async function handleSave(user: UserWithPassword) {
     if (editTarget) {
-      setData(prev => prev.map(u => u.id === usuario.id ? usuario : u))
+      await api.put(`/users/${user.id}`, user)
+      setData(prev => prev.map(u => u.id === user.id ? { ...u, ...user } : u))
     } else {
-      const newId = String(data.length + 1).padStart(3, '0')
-      setData(prev => [...prev, { ...usuario, id: newId }])
+      const res = await api.post<{ id: number }>('/users', user)
+      setData(prev => [...prev, { ...user, id: res.id }])
     }
     setShowModal(false)
     setEditTarget(null)
   }
+
+  if (loading) return <DashboardLayout><p style={{ padding: '2rem' }}>Cargando usuarios...</p></DashboardLayout>
+  if (error) return <DashboardLayout><p style={{ padding: '2rem', color: 'var(--danger)' }}>Error: {error}</p></DashboardLayout>
 
   return (
     <DashboardLayout>
@@ -68,18 +84,18 @@ export default function Users() {
                 <th>NOMBRE</th>
                 <th>CORREO</th>
                 <th>ROL</th>
-                  <th>ACCIONES</th>
+                <th>ACCIONES</th>
               </tr>
             </thead>
             <tbody>
               {paginated.map(u => (
                 <tr key={u.id}>
-                  <td><span className={styles.badge}>{u.id}</span></td>
-                  <td>{u.nombre}</td>
-                  <td className={styles.correo}>{u.correo}</td>
+                  <td><span className={styles.badge}>#{u.id}</span></td>
+                  <td>{u.name}</td>
+                  <td className={styles.correo}>{u.email}</td>
                   <td>
-                    <span className={`${styles.rolBadge} ${u.rol === 'admin' ? styles.rolAdmin : styles.rolWorker}`}>
-                      [{u.rol.toUpperCase()}]
+                    <span className={`${styles.rolBadge} ${u.role === 'admin' ? styles.rolAdmin : styles.rolWorker}`}>
+                      [{u.role.toUpperCase()}]
                     </span>
                   </td>
                   <td>
@@ -120,7 +136,7 @@ export default function Users() {
 
       {showModal && (
         <UserModal
-          usuario={editTarget}
+          user={editTarget}
           onSave={handleSave}
           onClose={() => { setShowModal(false); setEditTarget(null) }}
         />
@@ -129,7 +145,7 @@ export default function Users() {
       {deleteTarget && (
         <ConfirmModal
           title="¿Eliminar usuario?"
-          message={`Estás por eliminar a "${deleteTarget.nombre}". Esta acción no se puede deshacer.`}
+          message={`Estás por eliminar a "${deleteTarget.name}". Esta acción no se puede deshacer.`}
           onConfirm={() => handleDelete(deleteTarget.id)}
           onClose={() => setDeleteTarget(null)}
         />
@@ -139,14 +155,18 @@ export default function Users() {
 }
 
 interface UserModalProps {
-  usuario: Usuario | null
-  onSave: (usuario: Usuario) => void
+  user: User | null
+  onSave: (user: UserWithPassword) => void
   onClose: () => void
 }
 
-function UserModal({ usuario, onSave, onClose }: UserModalProps) {
-  const [form, setForm] = useState<Usuario>(
-    usuario ?? { id: '', nombre: '', correo: '', rol: 'trabajador' }
+type UserForm = Omit<User, 'id'> & { password: string }
+
+function UserModal({ user, onSave, onClose }: UserModalProps) {
+  const [form, setForm] = useState<UserForm>(
+    user
+      ? { name: user.name, email: user.email, role: user.role, password: '' }
+      : { name: '', email: '', role: 'worker', password: '' }
   )
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
@@ -155,36 +175,48 @@ function UserModal({ usuario, onSave, onClose }: UserModalProps) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    onSave(form)
+    const data: UserWithPassword = user
+      ? { ...user, ...form, ...(form.password ? {} : { password: undefined }) }
+      : { id: 0, ...form }
+    onSave(data)
   }
 
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>{usuario ? 'Editar usuario' : 'Crear usuario'}</h2>
+          <h2 className={styles.modalTitle}>{user ? 'Editar usuario' : 'Crear usuario'}</h2>
           <button className={styles.closeBtn} onClick={onClose}>✕</button>
         </div>
         <form className={styles.modalForm} onSubmit={handleSubmit}>
           {[
-            { name: 'nombre' as keyof Usuario, label: 'Nombre', placeholder: 'Ana Torres' },
-            { name: 'correo' as keyof Usuario, label: 'Correo electrónico', placeholder: 'ana@autotools.com', type: 'email' },
+            { name: 'name' as keyof UserForm, label: 'Nombre', placeholder: 'Ana Torres' },
+            { name: 'email' as keyof UserForm, label: 'Correo electrónico', placeholder: 'ana@autotools.com', type: 'email' },
+            { name: 'password' as keyof UserForm, label: user ? 'Nueva contraseña (opcional)' : 'Contraseña', placeholder: '••••••••', type: 'password' },
           ].map(f => (
             <div className={styles.field} key={f.name}>
               <label className={styles.label}>{f.label}</label>
-              <input className={styles.input} name={f.name} type={f.type || 'text'} placeholder={f.placeholder} value={form[f.name]} onChange={handleChange} required />
+              <input
+                className={styles.input}
+                name={f.name}
+                type={f.type || 'text'}
+                placeholder={f.placeholder}
+                value={form[f.name]}
+                onChange={handleChange}
+                required={f.name !== 'password' || !user}
+              />
             </div>
           ))}
           <div className={styles.field}>
             <label className={styles.label}>Rol</label>
-            <select className={styles.input} name="rol" value={form.rol} onChange={handleChange}>
-              <option value="trabajador">Trabajador</option>
+            <select className={styles.input} name="role" value={form.role} onChange={handleChange}>
+              <option value="worker">Trabajador</option>
               <option value="admin">Admin</option>
             </select>
           </div>
           <div className={styles.modalActions}>
             <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancelar</button>
-            <button type="submit" className={styles.saveBtn}>{usuario ? 'Guardar cambios' : 'Crear'}</button>
+            <button type="submit" className={styles.saveBtn}>{user ? 'Guardar cambios' : 'Crear'}</button>
           </div>
         </form>
       </div>
