@@ -229,11 +229,11 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const category = isNewCategory ? newCategory.trim() : form.category
     if (!category) return
-    onSave({
+    await onSave({
       ...form,
       category,
       stock: Number(form.stock),
