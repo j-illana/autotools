@@ -403,3 +403,20 @@
 .saveBtn:hover {
   background-color: var(--accent-hover);
 }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .tableWrapper {
+    overflow-x: auto;
+  }
+
+  .tableFooter {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+}
