@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import styles from './DashboardLayout.module.css'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 
 interface NavItem {
   to: string
@@ -45,6 +46,7 @@ const adminItems: NavItem[] = [
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   function handleLogout() {
     logout()
@@ -87,6 +89,44 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </svg>
           CERRAR SESIÓN
         </button>
+
+        {/* ── Mobile topbar ── */}
+        <div className={styles.mobileBar}>
+          <div className={styles.brand}>
+            <span className={styles.brandIcon}>⊞</span>
+            <span className={styles.brandName}>autoTools</span>
+          </div>
+          <button className={styles.hamburger} onClick={() => setMenuOpen(o => !o)} aria-label="Menú">
+            {menuOpen
+              ? <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              : <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            }
+          </button>
+        </div>
+
+        {menuOpen && (
+          <div className={styles.mobileMenu}>
+            {items.map(item => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) =>
+                  `${styles.mobileNavItem} ${isActive ? styles.navItemActive : ''}`
+                }
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+            <button className={styles.mobileLogoutBtn} onClick={handleLogout}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              CERRAR SESIÓN
+            </button>
+          </div>
+        )}
       </aside>
 
       <div className={styles.content}>
