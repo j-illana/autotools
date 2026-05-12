@@ -60,7 +60,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
           <div className={styles.brand}>
-            <span className={styles.brandIcon}>⊞</span>
+            <svg className={styles.brandIcon} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+            </svg>
             <div>
               <span className={styles.brandName}>autoTools</span>
               <span className={styles.brandVersion}>V.0.1.0</span>
@@ -93,7 +95,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* ── Mobile topbar ── */}
         <div className={styles.mobileBar}>
           <div className={styles.brand}>
-            <span className={styles.brandIcon}>⊞</span>
+            <svg className={styles.brandIcon} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+            </svg>
             <span className={styles.brandName}>autoTools</span>
           </div>
           <button className={styles.hamburger} onClick={() => setMenuOpen(o => !o)} aria-label="Menú">

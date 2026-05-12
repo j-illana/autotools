@@ -31,8 +31,8 @@
 }
 
 .brandIcon {
-  font-size: 1.3rem;
   color: var(--accent);
+  flex-shrink: 0;
 }
 
 .brandName {

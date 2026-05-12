@@ -20,7 +20,12 @@ export default function Home() {
       </header>
 
       <main className={styles.main}>
-        <h1 className={styles.logo}>autoTools</h1>
+        <div className={styles.logoWrapper}>
+          <svg className={styles.logoIcon} xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+          <h1 className={styles.logo}>autoTools</h1>
+        </div>
         <p className={styles.subtitle}>Consulta el inventario de autopartes</p>
 
         <form className={styles.searchForm} onSubmit={handleSearch}>

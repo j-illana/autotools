@@ -52,7 +52,9 @@ export default function Search() {
     <div className={styles.wrapper}>
       <header className={styles.header}>
         <Link to="/" className={styles.logoLink}>
-          <span className={styles.logoIcon}>⊞</span>
+          <svg className={styles.logoIcon} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
           <div>
             <span className={styles.logo}>autoTools</span>
             <span className={styles.version}>V.0.1.0</span>
